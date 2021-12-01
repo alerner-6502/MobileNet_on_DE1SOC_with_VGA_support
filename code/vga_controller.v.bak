@@ -1,0 +1,39 @@
+module vga_controller vga
+(
+	input  bit_clk,  //
+	output fb_clk,   
+	output vga_clk,  //
+	output reg vga_hsync,
+	output reg vga_vsync,
+	output reg vga_blank,
+	output vga_sync 
+);
+
+	assign vga_clk = bit_clk;
+	assign vga_sync = 1'b0;
+	
+	reg [9:0] x_cnt, y_cnt;
+	
+	initial begin
+		x_cnt = 10'd0;
+		y_cnt = 10'd0;
+	end
+	
+	always @ (posedge bit_clk) begin
+		if(x_cnt == 10'd799) begin
+			x_cnt <= 0;
+			if(y_cnt == 10'd523) y_cnt <= 10'd0;
+			else y_cnt <= y_cnt + 10'd1;
+		end
+		else begin
+			x_cnt <= x_cnt + 10'd1;
+		end
+		
+		vga_hsync <= (x_cnt < 704);
+		vga_vsync <= (y_cnt < 522);
+		vga_blank <= (x_cnt >= 200) & (x_cnt < 520) & (y_cnt >= 100) & (y_cnt < 340);
+	end
+	
+	assign fb_clk = bit_clk | ~vga_blank;
+	
+endmodule
